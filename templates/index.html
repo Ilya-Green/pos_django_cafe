@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Orders</title>
+  <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+</head>
+<body class="bg-blue-900">
+
+{% include 'header.html' with current_page="dashboard" %}
+
+<div class="container mx-auto mt-8">
+  <h1 class="text-2xl font-bold mb-4 text-white">Dashboard</h1>
+
+  <div class="mt-4 mb-4">
+    <div class="mb-5">
+      <label for="email" style="font-size:55px" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+        Total summ
+      </label>
+      <label for="email" style="font-size:35px" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+        {{ summ }}$
+      </label>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

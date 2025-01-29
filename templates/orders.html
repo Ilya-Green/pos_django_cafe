@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>Orders</title>
+  <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+</head>
+<body class="bg-blue-900">
+
+{% include 'header.html' with current_page="orders" %}
+
+  <div class="container mx-auto mt-8">
+    <h1 class="text-2xl font-bold mb-4 text-white">Cafe Orders</h1>
+
+    <!-- Блок поиска -->
+    <div class="flex items-center mb-4">
+      <input
+        type="text"
+        id="search-input"
+        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg
+               focus:ring-blue-500 focus:border-blue-500 block p-2 dark:bg-gray-700
+               dark:border-gray-600 dark:placeholder-gray-400 dark:text-white
+               dark:focus:ring-blue-500 dark:focus:border-blue-500"
+        placeholder="Поиск..."
+      />
+      <button
+        type="button"
+        id="search-btn"
+        class="ml-2 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4
+               focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2
+               dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+      >
+        Поиск
+      </button>
+    </div>
+    
+    <!-- Таблица заказов -->
+    <div class="overflow-x-auto">
+      <table class="min-w-full bg-white rounded-lg shadow-md">
+        <thead>
+          <tr class="bg-gray-200 text-gray-700">
+            <th class="py-2 px-4 text-left">ID</th>
+            <th class="py-2 px-4 text-left">Table Number</th>
+            <th class="py-2 px-4 text-left">Items</th>
+            <th class="py-2 px-4 text-left">Total Price</th>
+            <th class="py-2 px-4 text-left">Status</th>
+            <th class="py-2 px-4 text-left">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="orders-table">
+          {% for order in orders %}
+          <tr class="border-b">
+            <td class="py-2 px-4">{{ order.id }}</td>
+            <td class="py-2 px-4">{{ order.table_number }}</td>
+            <td class="py-2 px-4">
+              <ul>
+                {% for item in order.items %}
+                <li>{{ item.name }} : {{ item.price }}</li>
+                {% endfor %}
+              </ul>
+            </td>
+            <td class="py-2 px-4">${{ order.total_price }}</td>
+            <td class="py-2 px-4">
+              <form class="max-w-sm mx-auto">
+                <label
+                  for="countries"
+                  class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                >
+                  Select an option
+                </label>
+                <select
+                  data-orderid="{{ order.id }}"
+                  class="order-status-select bg-gray-50 border border-gray-300 text-gray-900 text-sm
+                         rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5
+                         dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400
+                         dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                >
+                  <option value="" disabled selected>Выберите статус</option>
+                  {% for status in statuses %}
+                  <option
+                    value="{{ status.id }}"
+                    {% if status.id == order.status.id %}selected{% endif %}
+                  >
+                    {{ status.name }}
+                  </option>
+                  {% endfor %}
+                </select>
+              </form>
+            </td>
+            <td class="py-2 px-4">
+              <button
+                id="remove-order"
+                data-deleteorderid="{{ order.id }}"
+                type="button"
+                class="relative inline-flex items-center justify-center p-0.5 mb-2 me-2
+                       overflow-hidden text-sm font-medium text-gray-900 rounded-lg group
+                       bg-gradient-to-br from-pink-500 to-orange-400 group-hover:from-pink-500
+                       group-hover:to-orange-400 hover:text-white dark:text-white focus:ring-4
+                       focus:outline-none focus:ring-pink-200 dark:focus:ring-pink-800"
+              >
+                <span
+                  class="relative px-5 py-2.5 transition-all ease-in duration-75
+                         bg-white dark:bg-gray-900 rounded-md group-hover:bg-opacity-0"
+                >
+                  Delete
+                </span>
+              </button>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="5" class="py-2 px-4 text-center text-gray-500">
+              No orders available.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Пагинация -->
+    <div class="mt-4 flex justify-center items-center space-x-2">
+      {% if orders.has_previous %}
+      <a
+        href="?page={{ orders.previous_page_number }}"
+        class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
+        >Previous</a
+      >
+      {% else %}
+      <span class="bg-gray-300 text-gray-500 px-3 py-1 rounded">Previous</span>
+      {% endif %}
+
+      <span class="px-3 py-1">{{ orders.number }} of {{ orders.paginator.num_pages }}</span>
+
+      {% if orders.has_next %}
+      <a
+        href="?page={{ orders.next_page_number }}"
+        class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
+        >Next</a
+      >
+      {% else %}
+      <span class="bg-gray-300 text-gray-500 px-3 py-1 rounded">Next</span>
+      {% endif %}
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('remove-order').addEventListener('click', function() {
+      const orderId = this.getAttribute('data-deleteorderid');
+      const url = `/api/v1/order/${orderId}/`;
+
+      if (confirm('Are you sure you want to delete this order?')) {
+        fetch(url, {
+          method: 'DELETE',
+          headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+          },
+        })
+          .then(response => {
+            if (response.ok) {
+              alert('Order deleted successfully!');
+              window.location.reload();
+            } else {
+              alert('Failed to delete order.');
+            }
+          })
+          .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while deleting the order.');
+          });
+      }
+    });
+
+    function getCookie(name) {
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+          const cookie = cookies[i].trim();
+          if (cookie.substring(0, name.length + 1) === name + '=') {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            break;
+          }
+        }
+      }
+      return cookieValue;
+    }
+  </script>
+
+  <script>
+    document.querySelectorAll('.order-status-select').forEach(function(selectElement) {
+      selectElement.addEventListener('change', function() {
+        const statusId = this.value;
+        const orderId = this.getAttribute('data-orderid');
+        console.log('Обновляем статус для заказа с ID:', orderId);
+
+        const data = { status: statusId };
+
+        fetch(`/api/v1/order/${orderId}/update-status/`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            // 'X-CSRFToken': getCookie('csrftoken'),
+          },
+          body: JSON.stringify(data),
+        })
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              console.log('Статус обновлен');
+            } else {
+              console.error('Ошибка обновления статуса');
+            }
+          })
+          .catch(error => {
+            console.error('Ошибка запроса:', error);
+          });
+      });
+    });
+  </script>
+
+  <script>
+    const searchBtn = document.getElementById('search-btn');
+    const searchInput = document.getElementById('search-input');
+
+    searchBtn.addEventListener('click', () => {
+      const searchValue = searchInput.value.trim();
+      const currentUrl = new URL(window.location.href);
+
+      if (searchValue) {
+        currentUrl.searchParams.set('search', searchValue);
+        currentUrl.searchParams.delete('page');
+      } else {
+        currentUrl.searchParams.delete('search');
+        currentUrl.searchParams.delete('page');
+      }
+
+      window.location.href = currentUrl.toString();
+    });
+  </script>
+</body>
+</html>

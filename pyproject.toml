@@ -1,0 +1,39 @@
+[project]
+name = "pos-django-cafe"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "Ilya-Green",email = "105509043+Ilya-Green@users.noreply.github.com"}
+]
+readme = "README.md"
+requires-python = ">=3.12,<4"
+dependencies = [
+    "django (>=5.1.5,<6.0.0)",
+    "psycopg[binary] (>=3.2.4,<4.0.0)",
+    "django-environ (>=0.12.0,<0.13.0)",
+    "djangorestframework (>=3.15.2,<4.0.0)",
+    "mypy (>=1.14.1,<2.0.0)",
+    "django-stubs (>=5.1.2,<6.0.0)",
+    "djangorestframework-stubs (>=3.15.2,<4.0.0)",
+    "drf-yasg (>=1.21.8,<2.0.0)",
+    "markdown (>=3.7,<4.0)",
+    "drf-yasg-stubs (>=0.1.4,<0.2.0)",
+    "types-markdown (>=3.7.0.20241204,<4.0.0.0)",
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.mypy]
+plugins = [
+    "mypy_django_plugin.main",
+    "mypy_drf_plugin.main"
+]
+
+strict = true
+
+[tool.django-stubs]
+django_settings_module = "pos_django_cafe.settings"
+strict_settings = true

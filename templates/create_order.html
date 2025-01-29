@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Orders</title>
+  <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+</head>
+<body class="bg-blue-900">
+
+{% include 'header.html' with current_page="create_order" %}
+
+<div class="container mx-auto mt-8">
+  <h1 class="text-2xl font-bold mb-4 text-white">Create Order</h1>
+
+  <div class="mt-4 mb-4">
+    <div class="mb-5">
+      <label for="table-number" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+        Table number
+      </label>
+      <input
+        type="number"
+        name="table_number"
+        id="table-number"
+        class="shadow-xs bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg
+               focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5
+               dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white
+               dark:focus:ring-blue-500 dark:focus:border-blue-500 dark:shadow-xs-light"
+        placeholder="11"
+        required
+      />
+    </div>
+
+    <div class="mb-5">
+      <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+        Items
+      </label>
+      <div id="items-container">
+        <div class="flex flex-row gap-4 mb-4 form-additems">
+          <select
+            name="item-select"
+            class="item-select bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg
+                   focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5
+                   dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400
+                   dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+          >
+            <option value="Espresso">Espresso</option>
+            <option value="Latte">Latte</option>
+            <option value="Raf">Raf</option>
+            <option value="Americano">Americano</option>
+          </select>
+          <input
+            type="number"
+            class="count-of-items shadow-xs bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg
+                   focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5
+                   dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400
+                   dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500
+                   dark:shadow-xs-light"
+            value="1"
+            required
+          />
+        </div>
+      </div>
+
+      <button
+        type="button"
+        id="create-newInput"
+        class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none
+               focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center
+               dark:bg-yellow-600 dark:hover:bg-yellow-700 dark:focus:ring-yellow-800"
+      >
+        Add new item
+      </button>
+    </div>
+
+    <div class="mb-5">
+      <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+        Total Price
+      </label>
+      <input
+        type="number"
+        id="total-price"
+        class="shadow-xs bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg
+               focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5
+               dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white
+               dark:focus:ring-blue-500 dark:focus:border-blue-500 dark:shadow-xs-light"
+        value="0"
+        required
+        readonly
+      />
+    </div>
+
+    <button
+      type="submit"
+      id="send-data-btn"
+      class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none
+             focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center
+             dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+    >
+      Create
+    </button>
+  </div>
+</div>
+
+<script>
+  const priceMap = {
+    'Espresso': 100,
+    'Latte': 110,
+    'Raf': 150,
+    'Americano': 140
+  };
+
+  const btnAdd = document.getElementById('create-newInput');
+  const container = document.getElementById('items-container');
+  const totalPriceInput = document.getElementById('total-price');
+
+  // Пересчёт общей суммы
+  function recalcTotal() {
+    let total = 0;
+    const blocks = container.querySelectorAll('.form-additems');
+
+    blocks.forEach(block => {
+      const select = block.querySelector('.item-select');
+      const input = block.querySelector('.count-of-items');
+
+      const itemName = select.value;
+      const count = parseInt(input.value, 10) || 0;
+      const itemPrice = priceMap[itemName] || 0;
+
+      total += (itemPrice * count);
+    });
+
+    totalPriceInput.value = total;
+  }
+
+  recalcTotal();
+
+  btnAdd.addEventListener('click', () => {
+    const originalBlock = container.querySelector('.form-additems');
+    if (!originalBlock) return;
+
+    const clone = originalBlock.cloneNode(true);
+    clone.querySelector('.count-of-items').value = 1;
+
+    container.appendChild(clone);
+
+    recalcTotal();
+  });
+
+  container.addEventListener('input', event => {
+    if (
+      event.target.classList.contains('item-select') ||
+      event.target.classList.contains('count-of-items')
+    ) {
+      recalcTotal();
+    }
+  });
+
+  const btnSend = document.getElementById('send-data-btn');
+  btnSend.addEventListener('click', () => {
+    const tableNumberInput = document.getElementById('table-number');
+    const tableNumber = tableNumberInput.value.trim();
+
+    if (!tableNumber) {
+        alert("Please enter a table number!");
+        tableNumberInput.focus();
+        return;
+    }
+
+    const blocks = container.querySelectorAll('.form-additems');
+    const result = Array.from(blocks).map(block => {
+        const select = block.querySelector('.item-select');
+        const input = block.querySelector('.count-of-items');
+
+        const itemName = select.value;
+        const itemCount = Number(input.value) || 1;
+        const itemPrice = priceMap[itemName] || 0;
+
+        return {
+            name: itemName,
+            count: itemCount,
+            price: itemPrice
+        };
+    });
+
+    const payload = {
+        table_number: tableNumber,
+        items: result,
+        total_price: Number(totalPriceInput.value || 0)
+    };
+
+    fetch('/api/v1/order/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`Ошибка сервера: ${response.status}`);
+        }
+        {#return response.json();#}
+    })
+    .then(data => {
+        console.log('Ответ от сервера:', data);
+        window.location.href = '/create_order';
+    })
+    .catch(error => {
+        console.error('Ошибка:', error);
+    });
+});
+
+</script>
+</body>
+</html>
